@@ -8,40 +8,40 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"productapi/databases"
+	"productapi/config"
 	"productapi/models"
 )
+
 var ctx context.Context
 var collection *mongo.Collection
 var database *mongo.Database
+
 func InsertProduct(w http.ResponseWriter, r *http.Request) {
-	database,collection=databases.DB()
-	w.Header().Set("Content-Type","application/json")
+	database, collection = config.DB()
+	w.Header().Set("Content-Type", "application/json")
 	log.Println("Serving :", r.URL.Path, "from", r.Host, r.Method)
 	if r.Method != http.MethodPost {
 		http.Error(w, "Error :", http.StatusMethodNotAllowed)
 		fmt.Fprintf(w, "%s\n", "Method not allowed!")
 		return
 	}
-	d,err:=ioutil.ReadAll(r.Body)
+	d, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w,"Error : ",http.StatusInternalServerError)
+		http.Error(w, "Error : ", http.StatusInternalServerError)
 		return
 	}
 	var product models.Product
-	err=json.Unmarshal(d,&product)
+	err = json.Unmarshal(d, &product)
 	if err != nil {
 		log.Println(err)
-		http.Error(w,"Error : ",http.StatusBadRequest)
+		http.Error(w, "Error : ", http.StatusBadRequest)
 		return
 	}
-	result,err:=collection.InsertOne(ctx,&product)
+	result, err := collection.InsertOne(ctx, &product)
 	if err != nil {
 		log.Println(err)
 	}
-	res,_:=json.Marshal(result)
+	res, _ := json.Marshal(result)
 	w.Write(res)
-
-
 
 }
